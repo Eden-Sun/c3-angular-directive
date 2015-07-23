@@ -54,6 +54,9 @@ angular.module('gridshore.c3js.chart', [])
             if ($scope.colorFunction) {
                 config.data.color = $scope.colorFunction;
             }
+            if ($scope.colorGaugeFunction) {
+                config.color = $scope.colorGaugeFunction;
+            }
             if ($scope.showLabels && $scope.showLabels === "true") {
                 config.data.labels = true;
             }
@@ -327,6 +330,10 @@ angular.module('gridshore.c3js.chart', [])
             $scope.colorFunction = colorFunction;
         };
 
+        this.addGaugeColorFunction = function (colorFunction) {
+            $scope.colorGaugeFunction = colorFunction;
+        };
+
         this.addOnInitFunction = function (onInitFunction) {
             $scope.onInit = onInitFunction;
         };
@@ -449,11 +456,15 @@ angular.module('gridshore.c3js.chart', [])
 
             $scope.config.data.keys = $scope.jsonKeys;
             $scope.config.data.json = $scope.chartData;
-
-            if (!$scope.chartIsGenerated) {
+            $scope.chart = c3.generate($scope.config);
+            if ($scope.chartCallbackFunction){
+                $scope.chartCallbackFunction($scope.chart);
+            }
+            if (!$scope.chartIsGenerated){
                 $scope.chart = c3.generate($scope.config);
                 $scope.chartIsGenerated = true;
-            } else {
+
+            }else{
                 $scope.chart.load($scope.config.data);
             }
         }
@@ -589,6 +600,10 @@ angular.module('gridshore.c3js.chart', [])
 
             var axis = {"label": {"text": label, "position": position}};
 
+            var type = attrs.axisType;
+            if (type) {
+                axis.type = type;
+            }
             var paddingLeft = attrs.paddingLeft;
             var paddingRight = attrs.paddingRight;
             if (paddingLeft || paddingRight) {
@@ -977,13 +992,18 @@ angular.module('gridshore.c3js.chart', [])
             if (attrs.colorFunction) {
                 chartCtrl.addColorFunction(scope.colorFunction());
             }
+
+            if (attrs.gaugeColorFunction) {
+                chartCtrl.addGaugeColorFunction(scope.gaugeColorFunction());
+            }
         };
 
         return {
             "require": "^c3chart",
             "restrict": "E",
             "scope": {
-                "colorFunction": "&"
+                "colorFunction": "&",
+                gaugeColorFunction:"&"
             },
             "replace": true,
             "link": colorsLinker
